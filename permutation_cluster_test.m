@@ -1,13 +1,13 @@
-function [zmap,zmapthresh] = permutation_cluster_test(condition1,condition2,n_permutes)
+function [zmap,zmapthresh] = permutation_cluster_test(condition1,condition2,n_permutes,nTimepoints)
     % Condition 1 Approachful (trials x frequencies x timepoints)
     % Condition 2 Avoidant (trials x frequencies x timepoints)
     % addpath('C:\Users\matth\OneDrive\BCM\fieldtrip-20250114')
     % ft_defaults;
     sfreq=250;
     num_frex=100;
-    frex = logspace(log10(1),log10(100),100);
-    tftimes = linspace(-2*sfreq,8*sfreq,sfreq*10);
-    nTimepoints = numel(tftimes);
+   
+    % tftimes = linspace(-2*sfreq,8*sfreq,sfreq*10);
+    % nTimepoints = numel(tftimes);
     
     % TF data
     comb_short_tf= cat(1, condition1, condition2);
@@ -15,19 +15,32 @@ function [zmap,zmapthresh] = permutation_cluster_test(condition1,condition2,n_pe
     avoidant_trialnum=size(condition2,1);
     approachful_trialnum=size(condition1,1);
     
-    diffmap=squeeze(mean(condition2(:,:,:),1) - mean(condition1(:,:,:),1));
-    
+    if ndims(condition1)==3
+        diffmap=squeeze(mean(condition2(:,:,:),1) - mean(condition1(:,:,:),1));
+    elseif ndims(condition1)==2
+        diffmap=squeeze(mean(condition2(:,:),1) - mean(condition1(:,:),1));
+    end
     voxel_pval = 0.05;
     mcc_voxel_pval = 0.05; % mcc = multiple comparisons correction
     mcc_cluster_pval = 0.05;
     
     % compute actual t-test of difference
-    tnum   = squeeze(mean(condition2(:,:,:),1) - mean(condition1(:,:,:),1));
-    tdenom = sqrt( (std(condition2(:,:,:),0,1).^2)./size(condition2,1) + (std(condition1(:,:,:),0,1).^2)./size(condition1,1) );
-    real_t = tnum./squeeze(tdenom);
-    
+    if ndims(condition1)==3
+        tnum   = squeeze(mean(condition2(:,:,:),1) - mean(condition1(:,:,:),1));
+        tdenom = sqrt( (std(condition2(:,:,:),0,1).^2)./size(condition2,1) + (std(condition1(:,:,:),0,1).^2)./size(condition1,1) );
+        real_t = tnum./squeeze(tdenom);
+    elseif ndims(condition1)==2
+        tnum   = squeeze(mean(condition2(:,:),1) - mean(condition1(:,:),1));
+        tdenom = sqrt( (std(condition2(:,:),0,1).^2)./size(condition2,1) + (std(condition1(:,:),0,1).^2)./size(condition1,1) );
+        real_t = tnum./squeeze(tdenom);
+    end
     % initialize null hypothesis matrices
-    permuted_tvals  = zeros(n_permutes,num_frex,nTimepoints);
+    if ndims(condition1)==3
+        permuted_tvals  = zeros(n_permutes,num_frex,nTimepoints);
+    elseif ndims(condition1)==2
+        permuted_tvals  = zeros(n_permutes,nTimepoints);
+    end
+
     max_pixel_pvals = zeros(n_permutes,2);
     max_clust_info  = zeros(n_permutes,1);
     
@@ -37,13 +50,21 @@ function [zmap,zmapthresh] = permutation_cluster_test(condition1,condition2,n_pe
         fake_condition_mapping = sign(randn(total_trials,1));
         
         % compute t-map of null hypothesis
-        tnum   = squeeze(mean(comb_short_tf(fake_condition_mapping==-1,:,:),1)-mean(comb_short_tf(fake_condition_mapping==1,:,:),1));
-        tdenom = sqrt( (std(comb_short_tf(fake_condition_mapping==-1,:,:),0,1).^2)./sum(fake_condition_mapping==-1) + (std(comb_short_tf(fake_condition_mapping==1,:,:),0,1).^2)./sum(fake_condition_mapping==1) );
-        tmap = tnum./squeeze(tdenom);
-        
-        % save all permuted values
-        permuted_tvals(permi,:,:) = tmap;
-    
+        if ndims(condition1)==3
+            tnum   = squeeze(mean(comb_short_tf(fake_condition_mapping==-1,:,:),1)-mean(comb_short_tf(fake_condition_mapping==1,:,:),1));
+            tdenom = sqrt( (std(comb_short_tf(fake_condition_mapping==-1,:,:),0,1).^2)./sum(fake_condition_mapping==-1) + (std(comb_short_tf(fake_condition_mapping==1,:,:),0,1).^2)./sum(fake_condition_mapping==1) );
+            tmap = tnum./squeeze(tdenom);
+            
+            % save all permuted values
+            permuted_tvals(permi,:,:) = tmap;
+        elseif ndims(condition1)==2
+            tnum   = squeeze(mean(comb_short_tf(fake_condition_mapping==-1,:),1)-mean(comb_short_tf(fake_condition_mapping==1,:),1));
+            tdenom = sqrt( (std(comb_short_tf(fake_condition_mapping==-1,:),0,1).^2)./sum(fake_condition_mapping==-1) + (std(comb_short_tf(fake_condition_mapping==1,:),0,1).^2)./sum(fake_condition_mapping==1) );
+            tmap = tnum./squeeze(tdenom);
+            
+            % save all permuted values
+            permuted_tvals(permi,:) = tmap;
+        end
         % save maximum pixel values
         max_pixel_pvals(permi,:) = [ min(tmap(:)) max(tmap(:)) ];
         

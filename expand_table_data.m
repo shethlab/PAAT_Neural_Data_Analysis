@@ -85,6 +85,14 @@ function [resultsTable]=expand_table_data(resultsTable)
     resultsTable.s_PosProb_safer_fixed0623 = resultsTable.PosProb_safer_fixed0623 - nanmean(resultsTable.PosProb_safer_fixed0623);
     resultsTable.s_PosProb_riskier_fixed0623 = resultsTable.PosProb_riskier_fixed0623 - nanmean(resultsTable.PosProb_riskier_fixed0623);
     
+    % Was the rewarding option chosen (in low conflict trials)?
+    resultsTable.ChoseRewarding_LowConflict = nan(length(resultsTable.ChoseRight),1);
+
+    resultsTable.ChoseRewarding_LowConflict(resultsTable.relPosProb_RvL>0 & resultsTable.ChoseRight==1 & resultsTable.arePosNegAligned==0) = 1;
+    resultsTable.ChoseRewarding_LowConflict(resultsTable.relPosProb_RvL<0 & resultsTable.ChoseRight==0 & resultsTable.arePosNegAligned==0) = 1;
+    resultsTable.ChoseRewarding_LowConflict(resultsTable.arePosNegAligned==1) = 0;
+    resultsTable.ChoseRewarding_LowConflict(resultsTable.relPosProb_RvL<0 & resultsTable.ChoseRight==1 & resultsTable.arePosNegAligned==0) = 0;
+    resultsTable.ChoseRewarding_LowConflict(resultsTable.relPosProb_RvL>0 & resultsTable.ChoseRight==0 & resultsTable.arePosNegAligned==0) = 0;
     %%Creating new table with only congruent trials
     % Subsetted table with only trials like those intended (risky = more positive)
     resultsTable_AlignedTrialsOnly = resultsTable(resultsTable.arePosNegAligned,:);

@@ -1,10 +1,12 @@
-% close all; clear all;
+close all; clear all;
 
 path_to_file = matlab.desktop.editor.getActiveFilename;
 path_to_dir = 'C:\Users\matth\OneDrive\BCM\PAAT Analysis\data\processed\';
 figure_path = [path_to_dir 'figures\'];
 all_fits = {};
-patient_group = ["DBSOCD001_2025-02-11"];
+patient_group = ["P015_2024-08-14"];
+pt=extractBefore(patient_group,'_');
+date=extractAfter(patient_group,'_');
 % ["NIN004_2024-08-20","NIN006_2024-10-30","NIN007_2024-10-11"];
 % ["aDBS010_2024-02-27","aDBS010_2024-06-27","aDBS011_2023-12-20",... ["non_responder","responder","disinhibited"];
 % "aDBS012_2023-12-18","P004_2024-04-02","P010_2024-01-03","P010_2024-01-11",...
@@ -172,9 +174,6 @@ for count = 1:length(patient_group)
     caxis([0 1]);
     % set(gca,'fontsize',24)
     % set(gcf, 'Position',  [0 1000 700 600])
-    curTitle = {current_pt,'Probability of Selecting Option Based on','Probability of Risk and Reward'};
-    title(curTitle); xlabel(xAxisLabel); ylabel(yAxisLabel);c.Label.String = 'Probability of Selecting Option';
-
     % 
     x = repmat(.1:.2:.9,1,5)';
     y = repelem(.1:.2:.9,1,5)';
@@ -184,6 +183,13 @@ for count = 1:length(patient_group)
     not_sig_slope_diff_from_0_mask = intervals(1,:).*intervals(2,:) < 0;
     z_aversion(count) = sf.p10;
     z_reward(count) = sf.p01;
+    angle(count) =  atand(z_aversion(count)/z_reward(count));%atand(R_aversion/R_reward);
+    mag(count) = sqrt(z_aversion(count)^2+z_reward(count)^2);
+    current_patient = strrep(current_pt,'-',' ');
+    title([current_patient,'Magnitude=',num2str(mag),'Angle=',num2str(angle)]); xlabel(xAxisLabel); ylabel(yAxisLabel);c.Label.String = 'Probability of Selecting Option';
+    saveas(gcf,['C:\Users\matth\OneDrive\BCM\PAAT Analysis\data\',pt{1},'\',date{1},'\Behavioral_Grid.png'])
+    saveas(gcf,['C:\Users\matth\OneDrive\BCM\PAAT Analysis\data\',pt{1},'\',date{1},'\Behavioral_Grid.svg'])
+    
     % if not_sig_slope_diff_from_0_mask(2)
     %     z_aversion(count) = 0;
     % else
@@ -199,9 +205,7 @@ for count = 1:length(patient_group)
     %     z_reward(count) = sf.p01;
     % end
 
-    angle(count) =  atand(z_aversion(count)/z_reward(count));%atand(R_aversion/R_reward);
     
-    mag(count) = sqrt(z_aversion(count)^2+z_reward(count)^2);
     disp(['Z_Aversion: ' num2str(z_aversion(count)) '  ' 'Z_Reward: ' num2str(z_reward(count)) '  ' 'Z_Aver / Z_Rew: ' num2str(z_aversion(count)/z_reward(count)) '  ' 'Angle ' num2str(angle(count))])
     z_aversion(count) = sf.p10;
     z_reward(count) = sf.p01;

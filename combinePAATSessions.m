@@ -15,8 +15,8 @@ data_path = [date_path 'processed\'];
 % subjects = ["P013"];
 % dates = {["2024-03-14","2024-04-11","2024-07-18"]};
 % file_name = [data_path 'PAAT_combined_dataTable_disinhibited.csv'];
-subjects = ["DBSOCD001"];
-dates = {"2025-02-11"};
+subjects = ["P019"];
+dates = {"2024-08-13"};
 % PD patients
 % subjects = ["NIN004","NIN006","NIN007"];
 % dates = {["2024-08-20"],["2024-10-30"],["2024-10-11"]};
@@ -61,7 +61,7 @@ for i = 1:length(subjects)
         resultsTable.Reward = results.reward;
         
         resultsTable.Date = repmat(dates{i}(j), length(results.trial),1);
-        resultsTable.OnsetFixationTimes = results.timing.absolute.onsetFixation;
+        %resultsTable.OnsetFixationTimes = results.timing.absolute.onsetFixation;
         resultsTable.TrialInBlock = results.trialInBlock;
         resultsTable.Loss = results.loss;
         resultsTable.MaxPosProb = results.maxPosProb;
